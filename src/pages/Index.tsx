@@ -132,6 +132,14 @@ const Index = () => {
               <Icon name="Coins" size={18} className="mr-2" />
               {tokens} жетонов
             </Badge>
+            <Button
+              variant="default"
+              onClick={() => navigate('/shop')}
+              className="font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90"
+            >
+              <Icon name="Plus" size={18} className="mr-2" />
+              Пополнить
+            </Button>
             {!isAuthenticated && (
               <Button
                 variant="secondary"
@@ -770,8 +778,8 @@ const Index = () => {
         <TabsContent value="shop" className="mt-0">
           <div className="container mx-auto max-w-6xl px-4 py-16">
             <div className="text-center mb-12 animate-fade-in">
-              <h2 className="text-5xl font-bold mb-4">Магазин жетонов</h2>
-              <p className="text-xl text-muted-foreground">Получайте бесплатные жетоны каждый день</p>
+              <h2 className="text-5xl font-bold mb-4">Получить жетоны</h2>
+              <p className="text-xl text-muted-foreground">Бесплатные бонусы или покупка по курсу 1₽ = 1 жетон</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -868,7 +876,22 @@ const Index = () => {
               </Card>
             </div>
 
-            <Card className="mt-8 max-w-4xl mx-auto bg-gradient-to-br from-primary/5 to-accent/5 border-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="mt-12 text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <Button 
+                size="lg"
+                onClick={() => navigate('/shop')}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xl px-12 py-8 shadow-2xl hover:shadow-3xl transition-all hover:scale-105"
+              >
+                <Icon name="ShoppingCart" size={28} className="mr-3" />
+                Купить жетоны
+                <Icon name="ArrowRight" size={24} className="ml-3" />
+              </Button>
+              <p className="mt-4 text-muted-foreground text-lg">
+                Курс обмена: <span className="font-bold text-foreground">1₽ = 1 жетон</span>
+              </p>
+            </div>
+
+            <Card className="mt-8 max-w-4xl mx-auto bg-gradient-to-br from-primary/5 to-accent/5 border-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <CardContent className="pt-6">
                 <div className="text-center">
                   <Icon name="Info" size={48} className="mx-auto mb-4 text-primary" />
@@ -884,6 +907,10 @@ const Index = () => {
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">3</div>
+                      <p>Покупайте жетоны по курсу <strong className="text-foreground">1₽ = 1 жетон</strong> с бонусами при больших покупках</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">4</div>
                       <p>Побеждайте в играх и турнирах, чтобы <strong className="text-foreground">выигрывать жетоны соперников</strong></p>
                     </div>
                   </div>
