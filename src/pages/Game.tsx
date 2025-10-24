@@ -38,6 +38,46 @@ const PIECE_SYMBOLS = {
 
 const DICE_PIECE_MAP: PieceType[] = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king'];
 
+const playSound = (type: 'move' | 'capture' | 'check' | 'gameover') => {
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  switch(type) {
+    case 'move':
+      oscillator.frequency.value = 300;
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+      break;
+    case 'capture':
+      oscillator.frequency.value = 200;
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+      break;
+    case 'check':
+      oscillator.frequency.value = 500;
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.15);
+      break;
+    case 'gameover':
+      oscillator.frequency.value = 150;
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+      break;
+  }
+};
+
 const createInitialBoard = (): (Piece | null)[][] => {
   const board: (Piece | null)[][] = Array(8).fill(null).map(() => Array(8).fill(null));
   
@@ -72,7 +112,7 @@ export default function Game() {
   const [winner, setWinner] = useState<Color | null>(null);
 
   useEffect(() => {
-    if (gameStatus === 'playing') {
+    if (gameStatus === 'playing' && timeControl !== 'Без ограничений') {
       const interval = setInterval(() => {
         if (currentTurn === 'white') {
           setWhiteTime(prev => Math.max(0, prev - 1));
@@ -82,17 +122,21 @@ export default function Game() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [currentTurn, gameStatus]);
+  }, [currentTurn, gameStatus, timeControl]);
 
   useEffect(() => {
-    if (whiteTime === 0) {
-      setGameStatus('checkmate');
-      setWinner('black');
-    } else if (blackTime === 0) {
-      setGameStatus('checkmate');
-      setWinner('white');
+    if (timeControl !== 'Без ограничений') {
+      if (whiteTime === 0) {
+        playSound('gameover');
+        setGameStatus('checkmate');
+        setWinner('black');
+      } else if (blackTime === 0) {
+        playSound('gameover');
+        setGameStatus('checkmate');
+        setWinner('white');
+      }
     }
-  }, [whiteTime, blackTime]);
+  }, [whiteTime, blackTime, timeControl]);
 
   useEffect(() => {
     if (currentTurn === 'black' && !diceRoll && gameStatus === 'playing') {
@@ -214,10 +258,21 @@ export default function Game() {
     newBoard[from.row][from.col] = null;
 
     if (targetPiece) {
+      playSound('capture');
       setCapturedPieces(prev => ({
         ...prev,
         [piece.color]: [...prev[piece.color], targetPiece]
       }));
+      
+      if (targetPiece.type === 'king') {
+        setBoard(newBoard);
+        playSound('gameover');
+        setGameStatus('checkmate');
+        setWinner(piece.color);
+        return;
+      }
+    } else {
+      playSound('move');
     }
 
     setBoard(newBoard);
@@ -227,7 +282,9 @@ export default function Game() {
 
     const enemyKingPos = findKing(currentTurn === 'white' ? 'black' : 'white');
     if (enemyKingPos && isSquareUnderAttack(enemyKingPos, piece.color)) {
+      playSound('check');
       if (!hasValidMoves(currentTurn === 'white' ? 'black' : 'white')) {
+        playSound('gameover');
         setGameStatus('checkmate');
         setWinner(piece.color);
       }
@@ -323,9 +380,25 @@ export default function Game() {
   };
 
   const handleResign = () => {
+    playSound('gameover');
     setGameStatus('checkmate');
     setWinner('black');
   };
+
+  const saveGameResult = (winner: Color) => {
+    const currentTokens = parseInt(localStorage.getItem('tokens') || '350');
+    if (winner === 'white') {
+      localStorage.setItem('tokens', String(currentTokens + bet * 2));
+    } else {
+      localStorage.setItem('tokens', String(currentTokens - bet));
+    }
+  };
+
+  useEffect(() => {
+    if (gameStatus === 'checkmate' && winner) {
+      saveGameResult(winner);
+    }
+  }, [gameStatus, winner]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -341,7 +414,7 @@ export default function Game() {
               Dice Chess
               <span>♟️</span>
             </h1>
-            <p className="text-muted-foreground">Ставка: {bet} жетонов</p>
+            <p className="text-muted-foreground">{bet > 0 ? `Ставка: ${bet} жетонов` : 'Тренировка'}</p>
           </div>
           <Button variant="destructive" onClick={handleResign} disabled={gameStatus !== 'playing'}>
             <Icon name="Flag" size={20} className="mr-2" />
@@ -361,9 +434,11 @@ export default function Game() {
                   <div className="text-sm text-muted-foreground">Чёрные</div>
                 </div>
               </div>
-              <div className={`text-2xl font-bold ${currentTurn === 'black' ? 'text-primary' : ''}`}>
-                {formatTime(blackTime)}
-              </div>
+              {timeControl !== 'Без ограничений' && (
+                <div className={`text-2xl font-bold ${currentTurn === 'black' ? 'text-primary' : ''}`}>
+                  {formatTime(blackTime)}
+                </div>
+              )}
             </div>
 
             <Card className="p-4 bg-card">
@@ -410,9 +485,11 @@ export default function Game() {
                   <div className="text-sm text-muted-foreground">Белые</div>
                 </div>
               </div>
-              <div className={`text-2xl font-bold ${currentTurn === 'white' ? 'text-primary' : ''}`}>
-                {formatTime(whiteTime)}
-              </div>
+              {timeControl !== 'Без ограничений' && (
+                <div className={`text-2xl font-bold ${currentTurn === 'white' ? 'text-primary' : ''}`}>
+                  {formatTime(whiteTime)}
+                </div>
+              )}
             </div>
 
             <div className="mt-4 p-6 bg-card rounded-lg text-center">
@@ -422,9 +499,11 @@ export default function Game() {
                   <h2 className="text-3xl font-bold">
                     {winner === 'white' ? 'Победа!' : 'Поражение'}
                   </h2>
-                  <p className="text-muted-foreground">
-                    {winner === 'white' ? `Вы выиграли ${bet * 2} жетонов!` : `Вы потеряли ${bet} жетонов`}
-                  </p>
+                  {bet > 0 && (
+                    <p className="text-muted-foreground">
+                      {winner === 'white' ? `Вы выиграли ${bet * 2} жетонов!` : `Вы потеряли ${bet} жетонов`}
+                    </p>
+                  )}
                   <Button onClick={() => navigate('/')} size="lg" className="w-full">
                     <Icon name="Home" size={20} className="mr-2" />
                     На главную
