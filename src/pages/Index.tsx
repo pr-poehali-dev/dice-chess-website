@@ -17,89 +17,37 @@ const Index = () => {
 
   const playerStats = {
     name: "Игрок_12345",
-    rating: 1856,
-    rank: 42,
-    totalGames: 156,
-    wins: 89,
-    losses: 67,
-    winRate: 57.1,
-    bestWinStreak: 8,
-    currentStreak: 3,
-    tokensWon: 12450,
-    tokensLost: 8930,
-    level: 15,
-    xp: 7320,
-    xpToNextLevel: 10000
+    rating: 1000,
+    rank: 0,
+    totalGames: 0,
+    wins: 0,
+    losses: 0,
+    winRate: 0,
+    bestWinStreak: 0,
+    currentStreak: 0,
+    tokensWon: 0,
+    tokensLost: 0,
+    level: 1,
+    xp: 0,
+    xpToNextLevel: 100
   };
 
   const achievements = [
-    { id: 1, title: "Первая победа", description: "Выиграйте свою первую игру", icon: "Trophy", unlocked: true, progress: 100 },
-    { id: 2, title: "Победная серия", description: "Выиграйте 5 игр подряд", icon: "Flame", unlocked: true, progress: 100 },
-    { id: 3, title: "Мастер блица", description: "Выиграйте 50 блиц-партий", icon: "Zap", unlocked: true, progress: 100 },
-    { id: 4, title: "Миллионер", description: "Накопите 10000 жетонов", icon: "Coins", unlocked: false, progress: 67 },
-    { id: 5, title: "Легенда", description: "Достигните рейтинга 2500", icon: "Star", unlocked: false, progress: 74 },
-    { id: 6, title: "Марафонец", description: "Сыграйте 500 игр", icon: "Target", unlocked: false, progress: 31 },
+    { id: 1, title: "Первая победа", description: "Выиграйте свою первую игру", icon: "Trophy", unlocked: false, progress: 0 },
+    { id: 2, title: "Победная серия", description: "Выиграйте 5 игр подряд", icon: "Flame", unlocked: false, progress: 0 },
+    { id: 3, title: "Мастер блица", description: "Выиграйте 50 блиц-партий", icon: "Zap", unlocked: false, progress: 0 },
+    { id: 4, title: "Миллионер", description: "Накопите 10000 жетонов", icon: "Coins", unlocked: false, progress: 0 },
+    { id: 5, title: "Легенда", description: "Достигните рейтинга 2500", icon: "Star", unlocked: false, progress: 0 },
+    { id: 6, title: "Марафонец", description: "Сыграйте 500 игр", icon: "Target", unlocked: false, progress: 0 },
   ];
 
-  const recentGames = [
-    { id: 1, opponent: "Мария С.", opponentRating: 1923, result: "win", bet: 200, time: "3+0", date: "23 окт" },
-    { id: 2, opponent: "Иван К.", opponentRating: 1845, result: "win", bet: 150, time: "5+0", date: "23 окт" },
-    { id: 3, opponent: "Петр Д.", opponentRating: 1990, result: "loss", bet: 300, time: "3+2", date: "22 окт" },
-    { id: 4, opponent: "Анна В.", opponentRating: 1812, result: "win", bet: 100, time: "5+3", date: "22 окт" },
-    { id: 5, opponent: "Сергей Н.", opponentRating: 2100, result: "loss", bet: 250, time: "10+5", date: "21 окт" },
-  ];
+  const recentGames: any[] = [];
 
-  const tournaments = [
-    {
-      id: 1,
-      title: "Чемпионат Новичков",
-      description: "Присоединяйтесь к нашему турниру для начинающих игроков и проверьте свои навыки в Dice Chess",
-      date: "28 Октября 2025",
-      prize: "5000 ₽",
-      participants: 24,
-      maxParticipants: 32,
-      status: "Открыта регистрация"
-    },
-    {
-      id: 2,
-      title: "Мастерская Битва",
-      description: "Турнир для опытных игроков с высокими ставками и престижными наградами",
-      date: "5 Ноября 2025",
-      prize: "25000 ₽",
-      participants: 15,
-      maxParticipants: 16,
-      status: "Осталось мест"
-    },
-    {
-      id: 3,
-      title: "Блиц-Челлендж",
-      description: "Быстрая игра, молниеносные решения. Докажите, что вы лучший в скоростной версии",
-      date: "12 Ноября 2025",
-      prize: "10000 ₽",
-      participants: 8,
-      maxParticipants: 64,
-      status: "Открыта регистрация"
-    }
-  ];
+  const tournaments: any[] = [];
 
-  const leaderboard = [
-    { rank: 1, name: "Александр Громов", rating: 2450, wins: 127, achievements: 15, trend: "up" },
-    { rank: 2, name: "Мария Соколова", rating: 2398, wins: 115, achievements: 12, trend: "up" },
-    { rank: 3, name: "Дмитрий Волков", rating: 2365, wins: 109, achievements: 11, trend: "same" },
-    { rank: 4, name: "Елена Петрова", rating: 2312, wins: 98, achievements: 10, trend: "down" },
-    { rank: 5, name: "Иван Кузнецов", rating: 2287, wins: 92, achievements: 9, trend: "up" },
-    { rank: 6, name: "Ольга Морозова", rating: 2245, wins: 86, achievements: 8, trend: "up" },
-    { rank: 7, name: "Сергей Новиков", rating: 2198, wins: 79, achievements: 7, trend: "same" },
-    { rank: 8, name: "Анна Федорова", rating: 2156, wins: 73, achievements: 6, trend: "down" }
-  ];
+  const leaderboard: any[] = [];
 
-  const lobbyGames = [
-    { id: 1, player: "Иван К.", rating: 1856, bet: 100, time: "5+3", status: "Ожидает" },
-    { id: 2, player: "Мария С.", rating: 2145, bet: 200, time: "3+0", status: "Ожидает" },
-    { id: 3, player: "Петр Д.", rating: 1678, bet: 50, time: "10+5", status: "Ожидает" },
-    { id: 4, player: "Анна В.", rating: 1923, bet: 150, time: "5+0", status: "Ожидает" },
-    { id: 5, player: "Сергей Н.", rating: 2234, bet: 300, time: "3+2", status: "Ожидает" },
-  ];
+  const lobbyGames: any[] = [];
 
   const timeControls = [
     { value: "1+0", label: "1 мин", icon: "Zap" },
