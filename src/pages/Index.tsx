@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthModal } from "@/components/AuthModal";
 import { EditUsernameModal } from "@/components/EditUsernameModal";
 import Icon from "@/components/ui/icon";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("home");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isEditUsernameOpen, setIsEditUsernameOpen] = useState(false);
@@ -473,7 +475,12 @@ const Index = () => {
                   size="lg" 
                   className="w-full text-xl py-7 bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg"
                   disabled={tokens < selectedBet || isSearchingMatch}
-                  onClick={() => setIsSearchingMatch(true)}
+                  onClick={() => {
+                    setIsSearchingMatch(true);
+                    setTimeout(() => {
+                      navigate(`/game?bet=${selectedBet}&time=${selectedTime}`);
+                    }, 2000);
+                  }}
                 >
                   {isSearchingMatch ? (
                     <>
