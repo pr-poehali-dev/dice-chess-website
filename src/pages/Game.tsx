@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 
 type PieceType = 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king';
 type Color = 'white' | 'black';
+type Difficulty = 'easy' | 'medium' | 'hard';
 
 interface Piece {
   type: PieceType;
@@ -38,7 +39,7 @@ const PIECE_SYMBOLS = {
 
 const DICE_PIECE_MAP: PieceType[] = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king'];
 
-const playSound = (type: 'move' | 'capture' | 'check' | 'gameover') => {
+const playSound = (type: 'move' | 'capture' | 'check' | 'gameover' | 'dice') => {
   const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
@@ -75,6 +76,13 @@ const playSound = (type: 'move' | 'capture' | 'check' | 'gameover') => {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
       break;
+    case 'dice':
+      oscillator.frequency.value = 400;
+      gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.08);
+      break;
   }
 };
 
@@ -98,11 +106,13 @@ export default function Game() {
   const [searchParams] = useSearchParams();
   const bet = parseInt(searchParams.get('bet') || '0');
   const timeControl = searchParams.get('time') || '5+3';
+  const difficulty = (searchParams.get('difficulty') || 'medium') as Difficulty;
   
   const [board, setBoard] = useState<(Piece | null)[][]>(createInitialBoard());
   const [selectedSquare, setSelectedSquare] = useState<Position | null>(null);
   const [currentTurn, setCurrentTurn] = useState<Color>('white');
-  const [diceRoll, setDiceRoll] = useState<PieceType | null>(null);
+  const [diceOptions, setDiceOptions] = useState<PieceType[]>([]);
+  const [selectedDice, setSelectedDice] = useState<PieceType | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
   const [capturedPieces, setCapturedPieces] = useState<{ white: Piece[], black: Piece[] }>({ white: [], black: [] });
@@ -139,24 +149,34 @@ export default function Game() {
   }, [whiteTime, blackTime, timeControl]);
 
   useEffect(() => {
-    if (currentTurn === 'black' && !diceRoll && gameStatus === 'playing') {
+    if (currentTurn === 'black' && diceOptions.length === 0 && gameStatus === 'playing') {
       setTimeout(() => rollDice(), 1000);
     }
-  }, [currentTurn, diceRoll, gameStatus]);
+  }, [currentTurn, diceOptions, gameStatus]);
 
   useEffect(() => {
-    if (currentTurn === 'black' && diceRoll && gameStatus === 'playing') {
+    if (currentTurn === 'black' && diceOptions.length > 0 && gameStatus === 'playing') {
       setTimeout(() => makeBotMove(), 1500);
     }
-  }, [currentTurn, diceRoll, gameStatus]);
+  }, [currentTurn, diceOptions, gameStatus]);
 
   const rollDice = () => {
     setIsRolling(true);
+    playSound('dice');
+    
+    const rollInterval = setInterval(() => {
+      playSound('dice');
+    }, 100);
+
     setTimeout(() => {
-      const roll = DICE_PIECE_MAP[Math.floor(Math.random() * 6)];
-      setDiceRoll(roll);
+      clearInterval(rollInterval);
+      const options: PieceType[] = [];
+      for (let i = 0; i < 3; i++) {
+        options.push(DICE_PIECE_MAP[Math.floor(Math.random() * 6)]);
+      }
+      setDiceOptions(options);
       setIsRolling(false);
-    }, 500);
+    }, 800);
   };
 
   const isValidMove = (from: Position, to: Position, piece: Piece): boolean => {
@@ -291,7 +311,8 @@ export default function Game() {
     }
 
     setCurrentTurn(currentTurn === 'white' ? 'black' : 'white');
-    setDiceRoll(null);
+    setDiceOptions([]);
+    setSelectedDice(null);
     setSelectedSquare(null);
   };
 
@@ -313,23 +334,64 @@ export default function Game() {
     return false;
   };
 
-  const makeBotMove = () => {
-    const validMoves: { from: Position, to: Position, score: number }[] = [];
+  const evaluateMove = (from: Position, to: Position, depth: number): number => {
+    const piece = board[from.row][from.col];
+    if (!piece) return 0;
 
-    for (let fromRow = 0; fromRow < 8; fromRow++) {
-      for (let fromCol = 0; fromCol < 8; fromCol++) {
-        const piece = board[fromRow][fromCol];
-        if (piece && piece.color === 'black' && piece.type === diceRoll) {
-          for (let toRow = 0; toRow < 8; toRow++) {
-            for (let toCol = 0; toCol < 8; toCol++) {
-              if (isValidMove({ row: fromRow, col: fromCol }, { row: toRow, col: toCol }, piece)) {
-                const target = board[toRow][toCol];
-                const score = target ? getPieceValue(target.type) : 0;
-                validMoves.push({ 
-                  from: { row: fromRow, col: fromCol }, 
-                  to: { row: toRow, col: toCol },
-                  score 
-                });
+    let score = 0;
+    const target = board[to.row][to.col];
+    
+    if (target) {
+      score += getPieceValue(target.type) * 10;
+    }
+
+    const centerRow = Math.abs(to.row - 3.5);
+    const centerCol = Math.abs(to.col - 3.5);
+    score -= (centerRow + centerCol) * 0.5;
+
+    if (difficulty === 'medium' || difficulty === 'hard') {
+      const newBoard = board.map(row => [...row]);
+      newBoard[to.row][to.col] = piece;
+      newBoard[from.row][from.col] = null;
+      
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const enemyPiece = newBoard[row][col];
+          if (enemyPiece && enemyPiece.color !== piece.color) {
+            if (isValidMove({ row, col }, to, enemyPiece)) {
+              score -= getPieceValue(piece.type) * 5;
+            }
+          }
+        }
+      }
+    }
+
+    if (difficulty === 'hard') {
+      score += Math.random() * 2;
+    }
+
+    return score;
+  };
+
+  const makeBotMove = () => {
+    const validMoves: { from: Position, to: Position, pieceType: PieceType, score: number }[] = [];
+
+    for (const diceOption of diceOptions) {
+      for (let fromRow = 0; fromRow < 8; fromRow++) {
+        for (let fromCol = 0; fromCol < 8; fromCol++) {
+          const piece = board[fromRow][fromCol];
+          if (piece && piece.color === 'black' && piece.type === diceOption) {
+            for (let toRow = 0; toRow < 8; toRow++) {
+              for (let toCol = 0; toCol < 8; toCol++) {
+                if (isValidMove({ row: fromRow, col: fromCol }, { row: toRow, col: toCol }, piece)) {
+                  const score = evaluateMove({ row: fromRow, col: fromCol }, { row: toRow, col: toCol }, 1);
+                  validMoves.push({ 
+                    from: { row: fromRow, col: fromCol }, 
+                    to: { row: toRow, col: toCol },
+                    pieceType: diceOption,
+                    score 
+                  });
+                }
               }
             }
           }
@@ -339,12 +401,25 @@ export default function Game() {
 
     if (validMoves.length > 0) {
       validMoves.sort((a, b) => b.score - a.score);
-      const bestMoves = validMoves.filter(m => m.score === validMoves[0].score);
-      const move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
-      makeMove(move.from, move.to);
+      
+      let move;
+      if (difficulty === 'easy') {
+        const randomIndex = Math.floor(Math.random() * Math.min(validMoves.length, 5));
+        move = validMoves[randomIndex];
+      } else if (difficulty === 'medium') {
+        const topMoves = validMoves.slice(0, 3);
+        move = topMoves[Math.floor(Math.random() * topMoves.length)];
+      } else {
+        move = validMoves[0];
+      }
+      
+      setSelectedDice(move.pieceType);
+      setTimeout(() => {
+        makeMove(move.from, move.to);
+      }, 500);
     } else {
       setCurrentTurn('white');
-      setDiceRoll(null);
+      setDiceOptions([]);
     }
   };
 
@@ -353,10 +428,16 @@ export default function Game() {
     return values[type];
   };
 
+  const handleDiceSelect = (pieceType: PieceType) => {
+    if (currentTurn !== 'white' || gameStatus !== 'playing') return;
+    setSelectedDice(pieceType);
+    setSelectedSquare(null);
+  };
+
   const handleSquareClick = (row: number, col: number) => {
     if (currentTurn !== 'white' || gameStatus !== 'playing') return;
 
-    if (!diceRoll) return;
+    if (!selectedDice) return;
 
     const piece = board[row][col];
 
@@ -365,10 +446,10 @@ export default function Game() {
         setSelectedSquare(null);
       } else if (isValidMove(selectedSquare, { row, col }, board[selectedSquare.row][selectedSquare.col]!)) {
         makeMove(selectedSquare, { row, col });
-      } else if (piece && piece.color === 'white' && piece.type === diceRoll) {
+      } else if (piece && piece.color === 'white' && piece.type === selectedDice) {
         setSelectedSquare({ row, col });
       }
-    } else if (piece && piece.color === 'white' && piece.type === diceRoll) {
+    } else if (piece && piece.color === 'white' && piece.type === selectedDice) {
       setSelectedSquare({ row, col });
     }
   };
@@ -400,6 +481,15 @@ export default function Game() {
     }
   }, [gameStatus, winner]);
 
+  const getDifficultyLabel = () => {
+    switch(difficulty) {
+      case 'easy': return 'Новичок';
+      case 'medium': return 'Эксперт';
+      case 'hard': return 'Мастер';
+      default: return 'Бот';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8">
@@ -422,15 +512,15 @@ export default function Game() {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_400px_300px] gap-6">
-          <div className="lg:col-start-2">
-            <div className="mb-4 p-4 bg-card rounded-lg border-2 border-muted flex items-center justify-between">
+        <div className="grid lg:grid-cols-[1fr_auto_300px] gap-6 items-start">
+          <div className="lg:col-start-2 flex flex-col items-center">
+            <div className="w-full max-w-[600px] mb-4 p-4 bg-card rounded-lg border-2 border-muted flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-2xl">
                   🤖
                 </div>
                 <div>
-                  <div className="font-semibold">Бот</div>
+                  <div className="font-semibold">{getDifficultyLabel()}</div>
                   <div className="text-sm text-muted-foreground">Чёрные</div>
                 </div>
               </div>
@@ -441,7 +531,7 @@ export default function Game() {
               )}
             </div>
 
-            <Card className="p-4 bg-card">
+            <Card className="p-4 bg-card w-full max-w-[600px]">
               <div className="grid grid-cols-8 gap-0 w-full aspect-square">
                 {board.map((row, rowIndex) =>
                   row.map((piece, colIndex) => {
@@ -449,18 +539,22 @@ export default function Game() {
                     const isSelected = selectedSquare?.row === rowIndex && selectedSquare?.col === colIndex;
                     const canMove = selectedSquare && piece === null && 
                       isValidMove(selectedSquare, { row: rowIndex, col: colIndex }, board[selectedSquare.row][selectedSquare.col]!);
+                    const canCapture = selectedSquare && piece && piece.color !== 'white' &&
+                      isValidMove(selectedSquare, { row: rowIndex, col: colIndex }, board[selectedSquare.row][selectedSquare.col]!);
                     
                     return (
                       <div
                         key={`${rowIndex}-${colIndex}`}
                         onClick={() => handleSquareClick(rowIndex, colIndex)}
                         className={`
-                          relative flex items-center justify-center text-4xl cursor-pointer transition-all
+                          relative flex items-center justify-center cursor-pointer transition-all aspect-square
                           ${isLight ? 'bg-muted/60' : 'bg-primary/40'}
-                          ${isSelected ? 'ring-4 ring-secondary' : ''}
-                          ${canMove ? 'ring-2 ring-accent' : ''}
+                          ${isSelected ? 'ring-4 ring-secondary ring-inset' : ''}
+                          ${canMove ? 'ring-2 ring-accent ring-inset' : ''}
+                          ${canCapture ? 'ring-4 ring-red-500 ring-inset' : ''}
                           hover:brightness-110
                         `}
+                        style={{ fontSize: 'clamp(24px, 5vw, 48px)' }}
                       >
                         {piece && PIECE_SYMBOLS[piece.color][piece.type]}
                         {canMove && (
@@ -475,7 +569,7 @@ export default function Game() {
               </div>
             </Card>
 
-            <div className="mt-4 p-4 bg-card rounded-lg border-2 border-muted flex items-center justify-between">
+            <div className="w-full max-w-[600px] mt-4 p-4 bg-card rounded-lg border-2 border-muted flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-2xl">
                   👤
@@ -492,9 +586,9 @@ export default function Game() {
               )}
             </div>
 
-            <div className="mt-4 p-6 bg-card rounded-lg text-center">
+            <div className="w-full max-w-[600px] mt-4 p-6 bg-card rounded-lg">
               {gameStatus === 'checkmate' && (
-                <div className="space-y-4">
+                <div className="space-y-4 text-center">
                   <div className="text-4xl mb-2">{winner === 'white' ? '🎉' : '😔'}</div>
                   <h2 className="text-3xl font-bold">
                     {winner === 'white' ? 'Победа!' : 'Поражение'}
@@ -512,35 +606,63 @@ export default function Game() {
               )}
               
               {gameStatus === 'playing' && (
-                <>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Ход: {currentTurn === 'white' ? 'Белые (Вы)' : 'Чёрные (Бот)'}
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground text-center mb-4">
+                    Ход: {currentTurn === 'white' ? 'Белые (Вы)' : `Чёрные (${getDifficultyLabel()})`}
                   </div>
                   
-                  {!diceRoll && !isRolling && currentTurn === 'white' && (
+                  {diceOptions.length === 0 && !isRolling && currentTurn === 'white' && (
                     <Button onClick={rollDice} size="lg" className="w-full">
                       <Icon name="Dices" size={24} className="mr-2" />
-                      Бросить кубик
+                      Бросить кубики
                     </Button>
                   )}
                   
                   {isRolling && (
-                    <div className="text-6xl animate-bounce">🎲</div>
+                    <div className="flex justify-center gap-4">
+                      <div className="text-6xl animate-bounce">🎲</div>
+                      <div className="text-6xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎲</div>
+                      <div className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎲</div>
+                    </div>
                   )}
                   
-                  {diceRoll && (
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground">Выпало:</div>
-                      <div className="text-6xl">
-                        {PIECE_SYMBOLS[currentTurn][diceRoll]}
+                  {diceOptions.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="text-sm text-muted-foreground text-center">
+                        {currentTurn === 'white' ? 'Выберите фигуру:' : 'Бот выбирает...'}
                       </div>
-                      <div className="text-lg font-semibold capitalize">{diceRoll}</div>
-                      {currentTurn === 'white' && (
-                        <p className="text-sm text-muted-foreground">Выберите фигуру на доске</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        {diceOptions.map((pieceType, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleDiceSelect(pieceType)}
+                            disabled={currentTurn !== 'white'}
+                            className={`
+                              p-4 rounded-lg border-2 transition-all
+                              ${selectedDice === pieceType 
+                                ? 'bg-secondary border-secondary ring-4 ring-secondary/50' 
+                                : 'bg-card border-muted hover:border-secondary'
+                              }
+                              ${currentTurn !== 'white' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                            `}
+                          >
+                            <div className="text-5xl text-center mb-2">
+                              {PIECE_SYMBOLS.white[pieceType]}
+                            </div>
+                            <div className="text-xs text-center capitalize font-semibold">
+                              {pieceType}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      {selectedDice && currentTurn === 'white' && (
+                        <p className="text-sm text-center text-muted-foreground">
+                          Выберите фигуру "{selectedDice}" на доске
+                        </p>
                       )}
                     </div>
                   )}
-                </>
+                </div>
               )}
             </div>
           </div>

@@ -572,7 +572,7 @@ const Index = () => {
                   </div>
                   <Button 
                     className="w-full bg-green-500 hover:bg-green-600 text-white"
-                    onClick={() => navigate('/game?bet=0&time=Без ограничений')}
+                    onClick={() => navigate('/game?bet=0&time=Без ограничений&difficulty=easy')}
                   >
                     <Icon name="Play" size={18} className="mr-2" />
                     Играть
@@ -609,7 +609,7 @@ const Index = () => {
                   </div>
                   <Button 
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
-                    onClick={() => navigate('/game?bet=0&time=Без ограничений')}
+                    onClick={() => navigate('/game?bet=0&time=Без ограничений&difficulty=medium')}
                   >
                     <Icon name="Play" size={18} className="mr-2" />
                     Играть
@@ -646,7 +646,7 @@ const Index = () => {
                   </div>
                   <Button 
                     className="w-full bg-red-500 hover:bg-red-600 text-white"
-                    onClick={() => navigate('/game?bet=0&time=Без ограничений')}
+                    onClick={() => navigate('/game?bet=0&time=Без ограничений&difficulty=hard')}
                   >
                     <Icon name="Play" size={18} className="mr-2" />
                     Играть
