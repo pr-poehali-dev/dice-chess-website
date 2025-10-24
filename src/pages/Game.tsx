@@ -468,7 +468,7 @@ export default function Game() {
           <div className="text-center">
             <h1 className="text-3xl font-bold text-white flex items-center gap-2 justify-center">
               <span>🎲</span>
-              Dice Chess
+              RandomChess
               <span>♟️</span>
             </h1>
             <p className="text-slate-400">{bet > 0 ? `Ставка: ${bet} жетонов` : 'Тренировка'}</p>
@@ -481,40 +481,41 @@ export default function Game() {
 
         <div className="grid lg:grid-cols-[300px_auto_300px] gap-6 items-start max-w-[1400px] mx-auto">
           <div className="space-y-4">
-            <Card className="p-4 bg-slate-800 border-slate-700">
-              <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
-                <Icon name="Dices" size={20} />
-                Кубики ({movesLeft} {movesLeft === 1 ? 'ход' : 'хода'})
-              </h3>
+            <div className="space-y-4">
               {isRolling ? (
                 <div className="flex justify-center gap-3 py-8">
-                  <div className="text-5xl animate-bounce">🎲</div>
-                  <div className="text-5xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎲</div>
-                  <div className="text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎲</div>
+                  <div className="text-6xl animate-bounce">🎲</div>
+                  <div className="text-6xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎲</div>
+                  <div className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎲</div>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col gap-3">
                   {diceRolls.map((pieceType, index) => (
                     <div
                       key={index}
-                      className="p-3 rounded-lg bg-slate-700 border-2 border-slate-600"
+                      className="bg-white rounded-lg shadow-lg p-4 flex items-center gap-3 border-2 border-gray-200"
                     >
-                      <div className="text-4xl text-center mb-1">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center text-white text-3xl font-bold shadow-md">
+                        {index + 1}
+                      </div>
+                      <div className="text-5xl">
                         {PIECE_SYMBOLS.white[pieceType]}
                       </div>
-                      <div className="text-[10px] text-center capitalize font-semibold text-slate-300">
-                        {pieceType === 'pawn' ? 'пешка' : pieceType === 'knight' ? 'конь' : pieceType === 'bishop' ? 'слон' : pieceType === 'rook' ? 'ладья' : pieceType === 'queen' ? 'ферзь' : 'король'}
+                      <div className="text-lg font-bold text-gray-700 capitalize">
+                        {pieceType === 'pawn' ? 'Пешка' : pieceType === 'knight' ? 'Конь' : pieceType === 'bishop' ? 'Слон' : pieceType === 'rook' ? 'Ладья' : pieceType === 'queen' ? 'Ферзь' : 'Король'}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
               {currentTurn === 'white' && movesLeft > 0 && diceRolls.length > 0 && (
-                <p className="text-xs text-center mt-3 text-slate-400">
-                  Выберите фигуру из кубиков
-                </p>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center">
+                  <p className="text-sm font-semibold text-blue-700">
+                    Ходов осталось: {movesLeft}
+                  </p>
+                </div>
               )}
-            </Card>
+            </div>
 
             <Card className="p-4 bg-slate-800 border-slate-700">
               <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
@@ -589,8 +590,8 @@ export default function Game() {
                 ))}
               </div>
 
-              <div className="bg-[#312e2b] p-3 rounded-lg shadow-2xl">
-                <div className="grid grid-cols-8 gap-0 w-full aspect-square rounded overflow-hidden shadow-lg">
+              <div className="bg-[#161512] p-2 rounded shadow-2xl">
+                <div className="grid grid-cols-8 gap-0 w-full aspect-square">
                   {board.map((row, rowIndex) =>
                     row.map((piece, colIndex) => {
                       const isLight = (rowIndex + colIndex) % 2 === 0;
@@ -604,20 +605,17 @@ export default function Game() {
                           onClick={() => handleSquareClick(rowIndex, colIndex)}
                           className={`
                             relative flex items-center justify-center cursor-pointer transition-all aspect-square
-                            ${isLight ? 'bg-[#ebecd0]' : 'bg-[#739552]'}
-                            ${isSelected ? 'ring-4 ring-[#f6f669] ring-inset' : ''}
-                            ${isValidMoveSquare && !canCapture ? 'after:absolute after:w-4 after:h-4 after:bg-black/20 after:rounded-full after:border-4 after:border-black/30' : ''}
-                            ${canCapture ? 'after:absolute after:inset-0 after:border-4 after:border-black/30 after:rounded-full after:m-1' : ''}
-                            hover:opacity-90
+                            ${isLight ? 'bg-[#f0d9b5]' : 'bg-[#b58863]'}
+                            ${isSelected ? 'after:absolute after:inset-0 after:bg-yellow-400/30' : ''}
+                            ${isValidMoveSquare && !canCapture ? 'after:absolute after:inset-0 after:bg-green-500/20 after:border-2 after:border-green-500/40' : ''}
+                            ${canCapture ? 'after:absolute after:inset-0 after:bg-red-500/30 after:border-2 after:border-red-600/50' : ''}
+                            hover:after:absolute hover:after:inset-0 hover:after:bg-white/10
                           `}
-                          style={{ fontSize: 'clamp(28px, 5.5vw, 54px)' }}
+                          style={{ fontSize: 'clamp(32px, 6vw, 60px)' }}
                         >
                           {piece && (
                             <span className="relative z-10 select-none" style={{
-                              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
-                              textShadow: piece.color === 'white' 
-                                ? '0 0 1px #000, 0 0 2px #fff'
-                                : '0 0 1px #fff, 0 0 2px #000'
+                              filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))'
                             }}>
                               {PIECE_SYMBOLS[piece.color][piece.type]}
                             </span>

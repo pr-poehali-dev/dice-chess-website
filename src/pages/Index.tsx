@@ -117,8 +117,8 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <div className="bg-card w-12 h-12 rounded-lg flex items-center justify-center text-2xl shadow-md">♟️</div>
             <div>
-              <div className="text-2xl font-bold tracking-tight">DICE CHESS</div>
-              <div className="text-xs opacity-75">Шахматы × Кубики</div>
+              <div className="text-2xl font-bold tracking-tight">RANDOMCHESS</div>
+              <div className="text-xs opacity-75">Шахматы с кубиками</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -186,7 +186,7 @@ const Index = () => {
                   </Badge>
                   <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight flex items-center gap-4 justify-center md:justify-start">
                     <span className="text-6xl md:text-8xl">♟️</span>
-                    <span>DICE CHESS</span>
+                    <span>RANDOMCHESS</span>
                     <span className="text-6xl md:text-8xl">🎲</span>
                   </h1>
                   <p className="text-xl md:text-2xl mb-8 opacity-90">
