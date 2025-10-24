@@ -109,10 +109,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
+      <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg border-b-4 border-secondary">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold">DICE CHESS</div>
+          <div className="flex items-center gap-3">
+            <div className="bg-card w-12 h-12 rounded-lg flex items-center justify-center text-2xl shadow-md">♟️</div>
+            <div>
+              <div className="text-2xl font-bold tracking-tight">DICE CHESS</div>
+              <div className="text-xs opacity-75">Шахматы × Кубики</div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <Badge className="bg-accent text-accent-foreground px-4 py-2 text-base font-semibold">
@@ -168,8 +172,8 @@ const Index = () => {
         </div>
 
         <TabsContent value="home" className="mt-0">
-          <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-20 px-4">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+          <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground py-20 px-4">
+            <div className="absolute inset-0" style={{backgroundImage: 'repeating-conic-gradient(#0000 0 25%, #fff1 0 50%) 0 / 60px 60px', opacity: 0.1}}></div>
             
             <div className="container mx-auto max-w-6xl relative z-10">
               <div className="flex flex-col md:flex-row items-center justify-between gap-12">
@@ -177,11 +181,13 @@ const Index = () => {
                   <Badge className="mb-4 bg-accent text-accent-foreground hover:bg-accent/90 animate-pulse-slow">
                     Онлайн сейчас: 1,234 игрока
                   </Badge>
-                  <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight">
-                    DICE CHESS
+                  <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight flex items-center gap-4 justify-center md:justify-start">
+                    <span className="text-6xl md:text-8xl">♟️</span>
+                    <span>DICE CHESS</span>
+                    <span className="text-6xl md:text-8xl">🎲</span>
                   </h1>
                   <p className="text-xl md:text-2xl mb-8 opacity-90">
-                    Стратегия встречает удачу в захватывающей игре, где каждый бросок кубика определяет судьбу партии
+                    Шахматы × Кубики: стратегия встречает удачу в захватывающей онлайн-игре
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <Button 
@@ -206,12 +212,23 @@ const Index = () => {
                 
                 <div className="flex-1 flex justify-center items-center animate-scale-in">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-secondary/30 blur-3xl rounded-full animate-pulse-slow"></div>
-                    <img 
-                      src="https://v3b.fal.media/files/b/koala/42UxSVuDvs4naZk3ZIB9-_output.png" 
-                      alt="Dice Chess" 
-                      className="relative w-full max-w-md rounded-2xl shadow-2xl animate-float"
-                    />
+                    <div className="grid grid-cols-8 gap-0 w-64 h-64 p-8 bg-card/20 backdrop-blur-sm rounded-2xl shadow-2xl border-4 border-secondary/30">
+                      {Array.from({ length: 64 }).map((_, i) => {
+                        const row = Math.floor(i / 8);
+                        const col = i % 8;
+                        const isLight = (row + col) % 2 === 0;
+                        const pieces = ['♔', '♕', '♖', '♗', '♘', '♙', '🎲'];
+                        const showPiece = Math.random() > 0.7;
+                        return (
+                          <div
+                            key={i}
+                            className={`${isLight ? 'bg-muted/40' : 'bg-primary/40'} flex items-center justify-center text-xl`}
+                          >
+                            {showPiece && pieces[Math.floor(Math.random() * pieces.length)]}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -222,7 +239,10 @@ const Index = () => {
             <div className="container mx-auto max-w-6xl">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-4xl font-bold mb-2">Ближайшие турниры</h2>
+                  <h2 className="text-4xl font-bold mb-2 flex items-center gap-3">
+                    <span>🏆</span>
+                    Ближайшие турниры
+                  </h2>
                   <p className="text-muted-foreground text-lg">Примите участие и выиграйте призы</p>
                 </div>
               </div>
@@ -299,9 +319,9 @@ const Index = () => {
                             <div className="flex items-center gap-2">
                               {player.rank <= 3 ? (
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                                  player.rank === 1 ? 'bg-accent text-accent-foreground' :
-                                  player.rank === 2 ? 'bg-muted text-muted-foreground' :
-                                  'bg-secondary/30 text-secondary'
+                                  player.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
+                                  player.rank === 2 ? 'bg-gray-300 text-gray-700' :
+                                  'bg-orange-400 text-orange-900'
                                 }`}>
                                   {player.rank}
                                 </div>
@@ -341,7 +361,11 @@ const Index = () => {
         <TabsContent value="play" className="mt-0">
           <div className="container mx-auto max-w-4xl px-4 py-16">
             <div className="text-center mb-12 animate-fade-in">
-              <h2 className="text-5xl font-bold mb-4">Создать игру</h2>
+              <h2 className="text-5xl font-bold mb-4 flex items-center gap-3 justify-center">
+                <span>🎲</span>
+                Создать игру
+                <span>♟️</span>
+              </h2>
               <p className="text-xl text-muted-foreground">Выберите ставку и временной контроль</p>
             </div>
 
@@ -418,11 +442,14 @@ const Index = () => {
               </Card>
             </div>
 
-            <Card className="mt-8 animate-fade-in border-2 border-primary/20" style={{ animationDelay: '0.2s' }}>
+            <Card className="mt-8 animate-fade-in border-2 border-secondary/50 bg-gradient-to-br from-card to-secondary/5" style={{ animationDelay: '0.2s' }}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-2xl font-bold mb-1">Готовы начать?</h3>
+                    <h3 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                      <span>⚔️</span>
+                      Готовы начать?
+                    </h3>
                     <p className="text-muted-foreground">Ваши настройки игры</p>
                   </div>
                   <div className="text-right">
