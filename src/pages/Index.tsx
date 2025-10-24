@@ -487,8 +487,123 @@ const Index = () => {
         <TabsContent value="lobby" className="mt-0">
           <div className="container mx-auto max-w-6xl px-4 py-16">
             <div className="text-center mb-12 animate-fade-in">
-              <h2 className="text-5xl font-bold mb-4">Лобби игр</h2>
-              <p className="text-xl text-muted-foreground">Присоединяйтесь к существующим играм</p>
+              <h2 className="text-5xl font-bold mb-4 flex items-center gap-3 justify-center">
+                <span>🤖</span>
+                Играть с ботом
+              </h2>
+              <p className="text-xl text-muted-foreground">Тренируйтесь с ботами разной сложности — без ставок</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in border-2 border-green-500/30">
+                <CardHeader>
+                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-4xl">🤖</span>
+                  </div>
+                  <CardTitle className="text-2xl text-center">Новичок</CardTitle>
+                  <CardDescription className="text-center">Идеально для начинающих</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Рейтинг</div>
+                    <Badge variant="secondary" className="text-lg px-4 py-1">800</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-green-500" />
+                      <span>Делает простые ходы</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-green-500" />
+                      <span>Иногда ошибается</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-green-500" />
+                      <span>Без ставок жетонов</span>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
+                    <Icon name="Play" size={18} className="mr-2" />
+                    Играть
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in border-2 border-yellow-500/30" style={{ animationDelay: '0.1s' }}>
+                <CardHeader>
+                  <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-4xl">🤖</span>
+                  </div>
+                  <CardTitle className="text-2xl text-center">Любитель</CardTitle>
+                  <CardDescription className="text-center">Средний уровень сложности</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Рейтинг</div>
+                    <Badge variant="secondary" className="text-lg px-4 py-1">1200</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-yellow-500" />
+                      <span>Думает на 2-3 хода</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-yellow-500" />
+                      <span>Хорошая защита</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-yellow-500" />
+                      <span>Без ставок жетонов</span>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white">
+                    <Icon name="Play" size={18} className="mr-2" />
+                    Играть
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in border-2 border-red-500/30" style={{ animationDelay: '0.2s' }}>
+                <CardHeader>
+                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-4xl">🤖</span>
+                  </div>
+                  <CardTitle className="text-2xl text-center">Мастер</CardTitle>
+                  <CardDescription className="text-center">Для опытных игроков</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Рейтинг</div>
+                    <Badge variant="secondary" className="text-lg px-4 py-1">1800</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-red-500" />
+                      <span>Агрессивная игра</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-red-500" />
+                      <span>Тактические комбо</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="CheckCircle" size={16} className="text-red-500" />
+                      <span>Без ставок жетонов</span>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-red-500 hover:bg-red-600 text-white">
+                    <Icon name="Play" size={18} className="mr-2" />
+                    Играть
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center mb-8">
+              <h3 className="text-3xl font-bold mb-4 flex items-center gap-3 justify-center">
+                <span>👥</span>
+                Лобби игроков
+              </h3>
+              <p className="text-muted-foreground">Присоединяйтесь к играм на жетоны</p>
             </div>
 
             <div className="space-y-4">
@@ -546,11 +661,11 @@ const Index = () => {
             </div>
 
             {lobbyGames.length === 0 && (
-              <Card className="py-16">
+              <Card className="py-12">
                 <CardContent className="text-center">
-                  <Icon name="Users" size={64} className="mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-2xl font-bold mb-2">Лобби пусто</h3>
-                  <p className="text-muted-foreground mb-6">Пока никто не ищет игру. Создайте свою!</p>
+                  <Icon name="Users" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-bold mb-2">Лобби пусто</h3>
+                  <p className="text-muted-foreground mb-4">Пока никто не ищет игру. Создайте свою!</p>
                   <Button onClick={() => setActiveTab("play")} className="bg-primary">
                     <Icon name="Plus" size={18} className="mr-2" />
                     Создать игру
