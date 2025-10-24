@@ -13,6 +13,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isEditUsernameOpen, setIsEditUsernameOpen] = useState(false);
+  const [isSearchingMatch, setIsSearchingMatch] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('authToken');
   });
@@ -211,23 +212,20 @@ const Index = () => {
                 </div>
                 
                 <div className="flex-1 flex justify-center items-center animate-scale-in">
-                  <div className="relative">
-                    <div className="grid grid-cols-8 gap-0 w-64 h-64 p-8 bg-card/20 backdrop-blur-sm rounded-2xl shadow-2xl border-4 border-secondary/30">
-                      {Array.from({ length: 64 }).map((_, i) => {
-                        const row = Math.floor(i / 8);
-                        const col = i % 8;
-                        const isLight = (row + col) % 2 === 0;
-                        const pieces = ['♔', '♕', '♖', '♗', '♘', '♙', '🎲'];
-                        const showPiece = Math.random() > 0.7;
-                        return (
-                          <div
-                            key={i}
-                            className={`${isLight ? 'bg-muted/40' : 'bg-primary/40'} flex items-center justify-center text-xl`}
-                          >
-                            {showPiece && pieces[Math.floor(Math.random() * pieces.length)]}
-                          </div>
-                        );
-                      })}
+                  <div className="relative w-full max-w-md">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="text-center">
+                        <div className="w-32 h-32 mx-auto bg-card/20 backdrop-blur-sm rounded-2xl shadow-2xl border-4 border-secondary/30 flex items-center justify-center text-6xl animate-float">
+                          ♟️
+                        </div>
+                        <p className="mt-4 text-lg font-semibold">Стратегия</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-32 h-32 mx-auto bg-card/20 backdrop-blur-sm rounded-2xl shadow-2xl border-4 border-secondary/30 flex items-center justify-center text-6xl animate-float" style={{ animationDelay: '0.5s' }}>
+                          🎲
+                        </div>
+                        <p className="mt-4 text-lg font-semibold">Удача</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -474,11 +472,54 @@ const Index = () => {
                 <Button 
                   size="lg" 
                   className="w-full text-xl py-7 bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg"
-                  disabled={tokens < selectedBet}
+                  disabled={tokens < selectedBet || isSearchingMatch}
+                  onClick={() => setIsSearchingMatch(true)}
                 >
-                  <Icon name="Play" size={24} className="mr-2" />
-                  {tokens < selectedBet ? "Недостаточно жетонов" : "Создать игру"}
+                  {isSearchingMatch ? (
+                    <>
+                      <Icon name="Loader2" size={24} className="mr-2 animate-spin" />
+                      Поиск соперника...
+                    </>
+                  ) : tokens < selectedBet ? (
+                    "Недостаточно жетонов"
+                  ) : (
+                    <>
+                      <Icon name="Search" size={24} className="mr-2" />
+                      Найти соперника
+                    </>
+                  )}
                 </Button>
+                {isSearchingMatch && (
+                  <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium">Идёт поиск игрока...</span>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setIsSearchingMatch(false)}
+                      >
+                        Отменить
+                      </Button>
+                    </div>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Target" size={14} />
+                        <span>Ставка: {selectedBet} жетонов</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={14} />
+                        <span>Время: {selectedTime}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Users" size={14} />
+                        <span>Ищем игрока с похожим рейтингом...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
