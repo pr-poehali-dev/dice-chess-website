@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -13,6 +14,40 @@ const Index = () => {
   const [selectedTime, setSelectedTime] = useState("3+0");
   const [adsWatched, setAdsWatched] = useState(2);
   const [dailyClaimedToday, setDailyClaimedToday] = useState(false);
+
+  const playerStats = {
+    name: "Игрок_12345",
+    rating: 1856,
+    rank: 42,
+    totalGames: 156,
+    wins: 89,
+    losses: 67,
+    winRate: 57.1,
+    bestWinStreak: 8,
+    currentStreak: 3,
+    tokensWon: 12450,
+    tokensLost: 8930,
+    level: 15,
+    xp: 7320,
+    xpToNextLevel: 10000
+  };
+
+  const achievements = [
+    { id: 1, title: "Первая победа", description: "Выиграйте свою первую игру", icon: "Trophy", unlocked: true, progress: 100 },
+    { id: 2, title: "Победная серия", description: "Выиграйте 5 игр подряд", icon: "Flame", unlocked: true, progress: 100 },
+    { id: 3, title: "Мастер блица", description: "Выиграйте 50 блиц-партий", icon: "Zap", unlocked: true, progress: 100 },
+    { id: 4, title: "Миллионер", description: "Накопите 10000 жетонов", icon: "Coins", unlocked: false, progress: 67 },
+    { id: 5, title: "Легенда", description: "Достигните рейтинга 2500", icon: "Star", unlocked: false, progress: 74 },
+    { id: 6, title: "Марафонец", description: "Сыграйте 500 игр", icon: "Target", unlocked: false, progress: 31 },
+  ];
+
+  const recentGames = [
+    { id: 1, opponent: "Мария С.", opponentRating: 1923, result: "win", bet: 200, time: "3+0", date: "23 окт" },
+    { id: 2, opponent: "Иван К.", opponentRating: 1845, result: "win", bet: 150, time: "5+0", date: "23 окт" },
+    { id: 3, opponent: "Петр Д.", opponentRating: 1990, result: "loss", bet: 300, time: "3+2", date: "22 окт" },
+    { id: 4, opponent: "Анна В.", opponentRating: 1812, result: "win", bet: 100, time: "5+3", date: "22 окт" },
+    { id: 5, opponent: "Сергей Н.", opponentRating: 2100, result: "loss", bet: 250, time: "10+5", date: "21 окт" },
+  ];
 
   const tournaments = [
     {
@@ -126,6 +161,10 @@ const Index = () => {
               <TabsTrigger value="shop" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-2 text-base">
                 <Icon name="ShoppingBag" size={18} className="mr-2" />
                 Магазин
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-2 text-base">
+                <Icon name="User" size={18} className="mr-2" />
+                Профиль
               </TabsTrigger>
             </TabsList>
           </div>
@@ -617,6 +656,250 @@ const Index = () => {
                       <p>Побеждайте в играх и турнирах, чтобы <strong className="text-foreground">выигрывать жетоны соперников</strong></p>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-0">
+          <div className="container mx-auto max-w-6xl px-4 py-16">
+            <div className="mb-12 animate-fade-in">
+              <Card className="border-2 border-primary/20">
+                <CardContent className="pt-8">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-32 h-32 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-primary-foreground text-5xl font-bold shadow-xl">
+                      {playerStats.name.charAt(0)}
+                    </div>
+                    
+                    <div className="flex-1 text-center md:text-left">
+                      <h2 className="text-4xl font-bold mb-2">{playerStats.name}</h2>
+                      <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                        <Badge className="text-base px-4 py-2 bg-primary">
+                          <Icon name="Star" size={16} className="mr-1" />
+                          Рейтинг: {playerStats.rating}
+                        </Badge>
+                        <Badge variant="outline" className="text-base px-4 py-2">
+                          <Icon name="TrendingUp" size={16} className="mr-1" />
+                          #{playerStats.rank} в мире
+                        </Badge>
+                        <Badge variant="secondary" className="text-base px-4 py-2">
+                          <Icon name="Award" size={16} className="mr-1" />
+                          Уровень {playerStats.level}
+                        </Badge>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">Прогресс до уровня {playerStats.level + 1}</span>
+                          <span className="font-semibold">{playerStats.xp} / {playerStats.xpToNextLevel} XP</span>
+                        </div>
+                        <Progress value={(playerStats.xp / playerStats.xpToNextLevel) * 100} className="h-3" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              <Card className="animate-scale-in">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-muted-foreground font-normal">Всего игр</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-primary">{playerStats.totalGames}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="animate-scale-in" style={{ animationDelay: '0.05s' }}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-muted-foreground font-normal">Победы</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-green-500">{playerStats.wins}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="animate-scale-in" style={{ animationDelay: '0.1s' }}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-muted-foreground font-normal">Поражения</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-red-500">{playerStats.losses}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="animate-scale-in" style={{ animationDelay: '0.15s' }}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-muted-foreground font-normal">Винрейт</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-accent">{playerStats.winRate}%</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <Card className="animate-fade-in">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Icon name="BarChart3" size={24} className="text-primary" />
+                    Статистика
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Flame" size={20} className="text-accent" />
+                      <span className="font-medium">Лучшая серия побед</span>
+                    </div>
+                    <Badge className="bg-accent text-accent-foreground">{playerStats.bestWinStreak} игр</Badge>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Zap" size={20} className="text-secondary" />
+                      <span className="font-medium">Текущая серия</span>
+                    </div>
+                    <Badge variant="secondary">{playerStats.currentStreak} побед</Badge>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Icon name="TrendingUp" size={20} className="text-green-500" />
+                      <span className="font-medium">Жетонов выиграно</span>
+                    </div>
+                    <Badge variant="outline" className="border-green-500 text-green-500">
+                      +{playerStats.tokensWon.toLocaleString()}
+                    </Badge>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Icon name="TrendingDown" size={20} className="text-red-500" />
+                      <span className="font-medium">Жетонов проиграно</span>
+                    </div>
+                    <Badge variant="outline" className="border-red-500 text-red-500">
+                      -{playerStats.tokensLost.toLocaleString()}
+                    </Badge>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-lg">Чистая прибыль</span>
+                      <span className="font-bold text-2xl text-accent">
+                        +{(playerStats.tokensWon - playerStats.tokensLost).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Icon name="Trophy" size={24} className="text-accent" />
+                    Достижения
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {achievements.map((achievement, index) => (
+                      <div 
+                        key={achievement.id}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          achievement.unlocked 
+                            ? 'bg-accent/10 border-accent/30' 
+                            : 'bg-muted/30 border-muted opacity-70'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            achievement.unlocked ? 'bg-accent text-accent-foreground' : 'bg-muted'
+                          }`}>
+                            <Icon name={achievement.icon as any} size={20} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold mb-1 flex items-center justify-between">
+                              <span>{achievement.title}</span>
+                              {achievement.unlocked && (
+                                <Icon name="Check" size={18} className="text-accent" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-2">{achievement.description}</p>
+                            {!achievement.unlocked && (
+                              <div>
+                                <Progress value={achievement.progress} className="h-1.5" />
+                                <div className="text-xs text-muted-foreground mt-1">{achievement.progress}%</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Icon name="History" size={24} className="text-primary" />
+                  Последние игры
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold">Соперник</th>
+                        <th className="px-4 py-3 text-left font-semibold">Рейтинг</th>
+                        <th className="px-4 py-3 text-left font-semibold">Результат</th>
+                        <th className="px-4 py-3 text-left font-semibold">Ставка</th>
+                        <th className="px-4 py-3 text-left font-semibold">Время</th>
+                        <th className="px-4 py-3 text-left font-semibold">Дата</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentGames.map((game, index) => (
+                        <tr 
+                          key={game.id}
+                          className="border-t hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="px-4 py-4 font-medium">{game.opponent}</td>
+                          <td className="px-4 py-4">
+                            <Badge variant="secondary" className="font-mono">
+                              {game.opponentRating}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-4">
+                            {game.result === 'win' ? (
+                              <Badge className="bg-green-500 hover:bg-green-600">
+                                <Icon name="Trophy" size={14} className="mr-1" />
+                                Победа
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-500 hover:bg-red-600">
+                                <Icon name="X" size={14} className="mr-1" />
+                                Поражение
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-4 py-4">
+                            <Badge variant="outline">
+                              <Icon name="Coins" size={14} className="mr-1" />
+                              {game.bet}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-4 text-muted-foreground">{game.time}</td>
+                          <td className="px-4 py-4 text-muted-foreground">{game.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
