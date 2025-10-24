@@ -20,20 +20,20 @@ interface Position {
 
 const PIECE_SYMBOLS = {
   white: {
-    king: '♔',
-    queen: '♕',
-    rook: '♖',
-    bishop: '♗',
-    knight: '♘',
-    pawn: '♙',
-  },
-  black: {
     king: '♚',
     queen: '♛',
     rook: '♜',
     bishop: '♝',
     knight: '♞',
     pawn: '♟',
+  },
+  black: {
+    king: '♔',
+    queen: '♕',
+    rook: '♖',
+    bishop: '♗',
+    knight: '♘',
+    pawn: '♙',
   },
 };
 
@@ -97,11 +97,11 @@ const createInitialBoard = (): (Piece | null)[][] => {
 export default function Game() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bet = parseInt(searchParams.get('bet') || '0');
+  const baseBet = parseInt(searchParams.get('bet') || '0');
   const timeControl = searchParams.get('time') || '5+3';
   const difficulty = (searchParams.get('difficulty') || 'medium') as Difficulty;
   const gameMode = (searchParams.get('mode') || 'normal') as 'normal' | 'x2';
-  const diceCount = gameMode === 'x2' ? 6 : 3;
+  const bet = gameMode === 'x2' ? baseBet * 2 : baseBet;
   
   const [board, setBoard] = useState<(Piece | null)[][]>(createInitialBoard());
   const [selectedSquare, setSelectedSquare] = useState<Position | null>(null);
@@ -163,7 +163,7 @@ export default function Game() {
     if (diceRolls.length === 0 && gameStatus === 'playing') {
       const availableDice = diceRolls.length > 0 ? diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx)) : [];
       const maxMoves = getAllValidMoves(currentTurn, availableDice).length;
-      setMustMoveCount(Math.min(maxMoves, diceCount));
+      setMustMoveCount(Math.min(maxMoves, 3));
     }
   }, [diceRolls, currentTurn]);
 
@@ -181,7 +181,7 @@ export default function Game() {
         setCurrentTurn(currentTurn === 'white' ? 'black' : 'white');
         setDiceRolls([]);
         setUsedDiceIndices([]);
-        setMovesLeft(diceCount);
+        setMovesLeft(3);
       }, 500);
     }
   }, [usedDiceIndices, diceRolls, currentTurn, gameStatus, isRolling, board, mustMoveCount]);
@@ -197,11 +197,11 @@ export default function Game() {
     setTimeout(() => {
       clearInterval(rollInterval);
       const rolls: PieceType[] = [];
-      for (let i = 0; i < diceCount; i++) {
+      for (let i = 0; i < 3; i++) {
         rolls.push(DICE_PIECE_MAP[Math.floor(Math.random() * 6)]);
       }
       setDiceRolls(rolls);
-      setMovesLeft(diceCount);
+      setMovesLeft(3);
       setIsRolling(false);
     }, 600);
   };
@@ -617,20 +617,14 @@ export default function Game() {
                           className={`
                             relative flex items-center justify-center cursor-pointer transition-all aspect-square
                             ${isLight ? 'bg-[#f0d9b5]' : 'bg-[#b58863]'}
-                            font-chess
                             ${isSelected ? 'after:absolute after:inset-0 after:bg-yellow-400/30' : ''}
                             ${isValidMoveSquare && !canCapture ? 'after:absolute after:inset-0 after:bg-green-500/20 after:border-2 after:border-green-500/40' : ''}
                             ${canCapture ? 'after:absolute after:inset-0 after:bg-red-500/30 after:border-2 after:border-red-600/50' : ''}
                             hover:after:absolute hover:after:inset-0 hover:after:bg-white/10
                           `}
-                          style={{ fontSize: 'clamp(32px, 6vw, 60px)' }}
                         >
                           {piece && (
-                            <div className="relative z-10 select-none" style={{
-                              textShadow: piece.color === 'white' 
-                                ? '0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.3)'
-                                : '0 1px 0 #000, 0 2px 3px rgba(0,0,0,0.5)'
-                            }}>
+                            <div className="relative z-10 select-none text-[clamp(32px,6vw,60px)]">
                               {PIECE_SYMBOLS[piece.color][piece.type]}
                             </div>
                           )}

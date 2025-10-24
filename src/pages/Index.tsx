@@ -96,8 +96,8 @@ const Index = () => {
   ];
 
   const gameModes = [
-    { value: 'normal', label: 'Обычный', description: '3 кубика за ход', icon: 'Dice1' },
-    { value: 'x2', label: 'x2', description: '6 кубиков за ход', icon: 'Dices' },
+    { value: 'normal', label: 'Обычная', description: 'Стандартная ставка', icon: 'Dice3' },
+    { value: 'x2', label: 'x2 Ставка', description: 'Удвоенная ставка', icon: 'TrendingUp' },
   ];
 
   const handleClaimDaily = () => {
