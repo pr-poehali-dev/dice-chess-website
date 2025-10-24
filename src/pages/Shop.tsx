@@ -1,14 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const Shop = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        navigate('/shop', { replace: true });
+        setShowSuccessMessage(false);
+      }, 5000);
+    }
+  }, [searchParams, navigate]);
 
   const tokenPackages = [
     { 
@@ -52,11 +65,38 @@ const Shop = () => {
     setSelectedPackage(pkg.id);
     setIsProcessing(true);
 
-    setTimeout(() => {
-      alert('Платёжная система находится в разработке. Скоро вы сможете пополнить баланс!');
+    try {
+      const userId = localStorage.getItem('userId') || '1';
+      const totalTokens = pkg.tokens + (pkg.bonus || 0);
+      
+      const response = await fetch('https://functions.poehali.dev/9d27a5c2-8709-4f55-b120-1157bcf6c1f8', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_payment',
+          user_id: parseInt(userId),
+          amount: pkg.price,
+          tokens: totalTokens
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        alert('Ошибка создания платежа. Попробуйте позже.');
+        setIsProcessing(false);
+        setSelectedPackage(null);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Ошибка соединения с платёжной системой');
       setIsProcessing(false);
       setSelectedPackage(null);
-    }, 1500);
+    }
   };
 
   return (
@@ -81,6 +121,20 @@ const Shop = () => {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          {showSuccessMessage && (
+            <Card className="mb-8 bg-green-900/50 border-green-600 animate-fade-in">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center gap-4 text-white">
+                  <Icon name="CheckCircle" size={32} className="text-green-400" />
+                  <div>
+                    <p className="text-xl font-bold">Платёж успешно выполнен!</p>
+                    <p className="text-green-300">Жетоны зачислены на ваш баланс</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="mb-8 bg-slate-800/50 border-slate-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-center gap-4 text-white">
