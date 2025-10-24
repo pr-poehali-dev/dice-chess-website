@@ -154,7 +154,23 @@ export default function Game() {
     if (currentTurn === 'black' && diceRolls.length > 0 && movesLeft > 0 && gameStatus === 'playing') {
       setTimeout(() => makeBotMove(), 800);
     }
-  }, [currentTurn, diceRolls, movesLeft, gameStatus]);
+  }, [currentTurn, diceRolls, movesLeft, gameStatus, usedDiceIndices]);
+
+  useEffect(() => {
+    if (gameStatus !== 'playing' || isRolling || diceRolls.length === 0) return;
+    
+    const availableDice = diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx));
+    const possibleMoves = getAllValidMoves(currentTurn, availableDice);
+    
+    if (possibleMoves.length === 0 && availableDice.length > 0) {
+      setTimeout(() => {
+        setCurrentTurn(currentTurn === 'white' ? 'black' : 'white');
+        setDiceRolls([]);
+        setUsedDiceIndices([]);
+        setMovesLeft(3);
+      }, 500);
+    }
+  }, [usedDiceIndices, diceRolls, currentTurn, gameStatus, isRolling, board]);
 
   const rollDice = () => {
     setIsRolling(true);
@@ -378,10 +394,6 @@ export default function Game() {
     const allMoves = getAllValidMoves('black', availableDice);
     
     if (allMoves.length === 0) {
-      setCurrentTurn('white');
-      setDiceRolls([]);
-      setUsedDiceIndices([]);
-      setMovesLeft(3);
       return;
     }
 
