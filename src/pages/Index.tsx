@@ -9,7 +9,7 @@ import { Slider } from "@/components/ui/slider";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [tokens, setTokens] = useState(350);
-  const [selectedBet, setSelectedBet] = useState(50);
+  const [selectedBet, setSelectedBet] = useState(100);
   const [selectedTime, setSelectedTime] = useState("3+0");
   const [adsWatched, setAdsWatched] = useState(2);
   const [dailyClaimedToday, setDailyClaimedToday] = useState(false);
@@ -329,19 +329,19 @@ const Index = () => {
                     <Slider
                       value={[selectedBet]}
                       onValueChange={(value) => setSelectedBet(value[0])}
-                      min={10}
-                      max={500}
-                      step={10}
+                      min={1}
+                      max={5000}
+                      step={1}
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>10</span>
-                      <span>500</span>
+                      <span>1</span>
+                      <span>5000</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    {[50, 100, 200, 300, 400, 500].map((bet) => (
+                    {[100, 500, 1000, 2000, 3000, 5000].map((bet) => (
                       <Button
                         key={bet}
                         variant={selectedBet === bet ? "default" : "outline"}
