@@ -2,18 +2,42 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
-  const [tokens, setTokens] = useState(350);
+  const [tokens, setTokens] = useState(() => {
+    const saved = localStorage.getItem('tokens');
+    return saved ? parseInt(saved) : 350;
+  });
   const [selectedBet, setSelectedBet] = useState(100);
   const [selectedTime, setSelectedTime] = useState("3+0");
-  const [adsWatched, setAdsWatched] = useState(2);
-  const [dailyClaimedToday, setDailyClaimedToday] = useState(false);
+  const [adsWatched, setAdsWatched] = useState(() => {
+    const saved = localStorage.getItem('adsWatched');
+    const lastDate = localStorage.getItem('adsWatchedDate');
+    const today = new Date().toDateString();
+    if (lastDate !== today) {
+      localStorage.setItem('adsWatchedDate', today);
+      return 0;
+    }
+    return saved ? parseInt(saved) : 0;
+  });
+  const [dailyClaimedToday, setDailyClaimedToday] = useState(() => {
+    const lastClaim = localStorage.getItem('dailyClaimDate');
+    const today = new Date().toDateString();
+    return lastClaim === today;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tokens', tokens.toString());
+  }, [tokens]);
+
+  useEffect(() => {
+    localStorage.setItem('adsWatched', adsWatched.toString());
+  }, [adsWatched]);
 
   const playerStats = {
     name: "Игрок_12345",
@@ -64,6 +88,8 @@ const Index = () => {
     if (!dailyClaimedToday) {
       setTokens(tokens + 100);
       setDailyClaimedToday(true);
+      const today = new Date().toDateString();
+      localStorage.setItem('dailyClaimDate', today);
     }
   };
 
