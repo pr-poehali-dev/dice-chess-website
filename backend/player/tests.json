@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Get player profile unauthorized",
+      "method": "GET",
+      "headers": {
+        "X-Auth-Token": "invalid-token"
+      },
+      "expectedStatus": 401
+    }
+  ]
+}

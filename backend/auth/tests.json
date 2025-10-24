@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Register returns 400 if email exists",
+      "method": "POST",
+      "body": {
+        "action": "register",
+        "email": "test@example.com",
+        "password": "password123",
+        "username": "TestPlayer"
+      },
+      "expectedStatus": 400
+    },
+    {
+      "name": "Login existing user",
+      "method": "POST",
+      "body": {
+        "action": "login",
+        "email": "test@example.com",
+        "password": "password123"
+      },
+      "expectedStatus": 200
+    }
+  ]
+}

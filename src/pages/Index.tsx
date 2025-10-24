@@ -3,12 +3,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
+import { AuthModal } from "@/components/AuthModal";
+import { EditUsernameModal } from "@/components/EditUsernameModal";
 import Icon from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isEditUsernameOpen, setIsEditUsernameOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('authToken');
+  });
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem('username') || 'Гость';
+  });
   const [tokens, setTokens] = useState(() => {
     const saved = localStorage.getItem('tokens');
     return saved ? parseInt(saved) : 350;
@@ -40,7 +50,7 @@ const Index = () => {
   }, [adsWatched]);
 
   const playerStats = {
-    name: "Игрок_12345",
+    name: username,
     rating: 1000,
     rank: 0,
     totalGames: 0,
@@ -109,6 +119,22 @@ const Index = () => {
               <Icon name="Coins" size={18} className="mr-2" />
               {tokens} жетонов
             </Badge>
+            {!isAuthenticated && (
+              <Button
+                variant="secondary"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="font-semibold"
+              >
+                <Icon name="LogIn" size={18} className="mr-2" />
+                Вход
+              </Button>
+            )}
+            {isAuthenticated && (
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="User" size={16} />
+                <span className="font-medium">{username}</span>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -645,7 +671,19 @@ const Index = () => {
                     </div>
                     
                     <div className="flex-1 text-center md:text-left">
-                      <h2 className="text-4xl font-bold mb-2">{playerStats.name}</h2>
+                      <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                        <h2 className="text-4xl font-bold">{playerStats.name}</h2>
+                        {isAuthenticated && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsEditUsernameOpen(true)}
+                            className="hover:bg-primary/10"
+                          >
+                            <Icon name="Edit" size={18} />
+                          </Button>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                         <Badge className="text-base px-4 py-2 bg-primary">
                           <Icon name="Star" size={16} className="mr-1" />
@@ -876,6 +914,24 @@ const Index = () => {
           <p>© 2025 Dice Chess. Все права защищены.</p>
         </div>
       </footer>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(data) => {
+          setIsAuthenticated(true);
+          setUsername(data.username);
+        }}
+      />
+
+      <EditUsernameModal
+        isOpen={isEditUsernameOpen}
+        onClose={() => setIsEditUsernameOpen(false)}
+        currentUsername={username}
+        onSuccess={(newUsername) => {
+          setUsername(newUsername);
+        }}
+      />
     </div>
   );
 };
