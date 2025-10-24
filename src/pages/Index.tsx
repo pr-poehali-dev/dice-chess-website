@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
@@ -50,10 +50,7 @@ const Index = () => {
     bestWinStreak: 0,
     currentStreak: 0,
     tokensWon: 0,
-    tokensLost: 0,
-    level: 1,
-    xp: 0,
-    xpToNextLevel: 100
+    tokensLost: 0
   };
 
   const achievements = [
@@ -333,23 +330,23 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Жетоны:</span>
-                      <Badge className="text-2xl px-4 py-2 bg-accent text-accent-foreground">
-                        {selectedBet}
-                      </Badge>
-                    </div>
-                    <Slider
-                      value={[selectedBet]}
-                      onValueChange={(value) => setSelectedBet(value[0])}
-                      min={1}
-                      max={5000}
-                      step={1}
-                      className="w-full"
+                    <label className="text-sm font-medium">Введите ставку</label>
+                    <Input
+                      type="number"
+                      value={selectedBet}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 0;
+                        if (value >= 0 && value <= tokens) {
+                          setSelectedBet(value);
+                        }
+                      }}
+                      min={0}
+                      max={tokens}
+                      className="text-2xl font-bold text-center h-16"
+                      placeholder="Введите ставку"
                     />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>1</span>
-                      <span>5000</span>
+                    <div className="text-sm text-muted-foreground text-center">
+                      Доступно: {tokens} жетонов
                     </div>
                   </div>
 
@@ -358,7 +355,8 @@ const Index = () => {
                       <Button
                         key={bet}
                         variant={selectedBet === bet ? "default" : "outline"}
-                        onClick={() => setSelectedBet(bet)}
+                        onClick={() => bet <= tokens && setSelectedBet(bet)}
+                        disabled={bet > tokens}
                         className={selectedBet === bet ? "bg-primary" : ""}
                       >
                         {bet}
@@ -655,20 +653,12 @@ const Index = () => {
                         </Badge>
                         <Badge variant="outline" className="text-base px-4 py-2">
                           <Icon name="TrendingUp" size={16} className="mr-1" />
-                          #{playerStats.rank} в мире
+                          #{playerStats.rank || '—'} в мире
                         </Badge>
                         <Badge variant="secondary" className="text-base px-4 py-2">
-                          <Icon name="Award" size={16} className="mr-1" />
-                          Уровень {playerStats.level}
+                          <Icon name="Coins" size={16} className="mr-1" />
+                          {tokens} жетонов
                         </Badge>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Прогресс до уровня {playerStats.level + 1}</span>
-                          <span className="font-semibold">{playerStats.xp} / {playerStats.xpToNextLevel} XP</span>
-                        </div>
-                        <Progress value={(playerStats.xp / playerStats.xpToNextLevel) * 100} className="h-3" />
                       </div>
                     </div>
                   </div>
