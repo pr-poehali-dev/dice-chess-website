@@ -551,18 +551,26 @@ export default function Game() {
           </div>
 
           <div className="flex flex-col items-center">
-            <div className="w-full max-w-[600px] mb-4 p-3 bg-slate-800 border-2 border-slate-700 rounded-lg flex items-center justify-between">
+            <div className="w-full max-w-[600px] mb-2 px-4 py-2 bg-[#262421] rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-2xl shadow-md">
                   🤖
                 </div>
                 <div>
-                  <div className="font-semibold text-white">{getDifficultyLabel()}</div>
-                  <div className="text-xs text-slate-400">Чёрные</div>
+                  <div className="font-bold text-white text-sm">{getDifficultyLabel()}</div>
+                  <div className="flex items-center gap-2">
+                    {capturedPieces.black.slice(0, 8).map((piece, i) => (
+                      <span key={i} className="text-sm opacity-60">{PIECE_SYMBOLS[piece.color][piece.type]}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
               {timeControl !== 'Без ограничений' && (
-                <div className={`text-xl font-bold ${currentTurn === 'black' ? 'text-green-400' : 'text-white'}`}>
+                <div className={`px-3 py-1.5 rounded font-bold text-lg transition-colors ${
+                  currentTurn === 'black' 
+                    ? 'bg-[#81b64c] text-white' 
+                    : 'bg-[#3d3d3d] text-gray-300'
+                }`}>
                   {formatTime(blackTime)}
                 </div>
               )}
@@ -581,8 +589,8 @@ export default function Game() {
                 ))}
               </div>
 
-              <div className="bg-amber-900 p-4 rounded-lg shadow-2xl border-4 border-amber-950">
-                <div className="grid grid-cols-8 gap-0 w-full aspect-square rounded-md overflow-hidden shadow-inner">
+              <div className="bg-[#312e2b] p-3 rounded-lg shadow-2xl">
+                <div className="grid grid-cols-8 gap-0 w-full aspect-square rounded overflow-hidden shadow-lg">
                   {board.map((row, rowIndex) =>
                     row.map((piece, colIndex) => {
                       const isLight = (rowIndex + colIndex) % 2 === 0;
@@ -596,16 +604,21 @@ export default function Game() {
                           onClick={() => handleSquareClick(rowIndex, colIndex)}
                           className={`
                             relative flex items-center justify-center cursor-pointer transition-all aspect-square
-                            ${isLight ? 'bg-amber-100' : 'bg-amber-700'}
-                            ${isSelected ? 'ring-4 ring-blue-500 ring-inset brightness-110' : ''}
-                            ${isValidMoveSquare && !canCapture ? 'after:absolute after:w-3 after:h-3 after:bg-green-400 after:rounded-full after:opacity-70 after:shadow-lg' : ''}
-                            ${canCapture ? 'ring-4 ring-red-500 ring-inset brightness-110' : ''}
-                            hover:brightness-105
+                            ${isLight ? 'bg-[#ebecd0]' : 'bg-[#739552]'}
+                            ${isSelected ? 'ring-4 ring-[#f6f669] ring-inset' : ''}
+                            ${isValidMoveSquare && !canCapture ? 'after:absolute after:w-4 after:h-4 after:bg-black/20 after:rounded-full after:border-4 after:border-black/30' : ''}
+                            ${canCapture ? 'after:absolute after:inset-0 after:border-4 after:border-black/30 after:rounded-full after:m-1' : ''}
+                            hover:opacity-90
                           `}
-                          style={{ fontSize: 'clamp(24px, 5vw, 48px)' }}
+                          style={{ fontSize: 'clamp(28px, 5.5vw, 54px)' }}
                         >
                           {piece && (
-                            <span className="filter drop-shadow-lg">
+                            <span className="relative z-10 select-none" style={{
+                              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
+                              textShadow: piece.color === 'white' 
+                                ? '0 0 1px #000, 0 0 2px #fff'
+                                : '0 0 1px #fff, 0 0 2px #000'
+                            }}>
                               {PIECE_SYMBOLS[piece.color][piece.type]}
                             </span>
                           )}
@@ -617,18 +630,26 @@ export default function Game() {
               </div>
             </div>
 
-            <div className="w-full max-w-[600px] mt-4 p-3 bg-slate-800 border-2 border-slate-700 rounded-lg flex items-center justify-between">
+            <div className="w-full max-w-[600px] mt-2 px-4 py-2 bg-[#262421] rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-2xl shadow-md">
                   👤
                 </div>
                 <div>
-                  <div className="font-semibold text-white">Вы</div>
-                  <div className="text-xs text-slate-400">Белые</div>
+                  <div className="font-bold text-white text-sm">Вы</div>
+                  <div className="flex items-center gap-2">
+                    {capturedPieces.white.slice(0, 8).map((piece, i) => (
+                      <span key={i} className="text-sm opacity-60">{PIECE_SYMBOLS[piece.color][piece.type]}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
               {timeControl !== 'Без ограничений' && (
-                <div className={`text-xl font-bold ${currentTurn === 'white' ? 'text-green-400' : 'text-white'}`}>
+                <div className={`px-3 py-1.5 rounded font-bold text-lg transition-colors ${
+                  currentTurn === 'white' 
+                    ? 'bg-[#81b64c] text-white' 
+                    : 'bg-[#3d3d3d] text-gray-300'
+                }`}>
                   {formatTime(whiteTime)}
                 </div>
               )}
