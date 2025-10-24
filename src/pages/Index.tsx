@@ -28,6 +28,7 @@ const Index = () => {
   });
   const [selectedBet, setSelectedBet] = useState(100);
   const [selectedTime, setSelectedTime] = useState("3+0");
+  const [gameMode, setGameMode] = useState<'normal' | 'x2'>('normal');
   const [adsWatched, setAdsWatched] = useState(() => {
     const saved = localStorage.getItem('adsWatched');
     const lastDate = localStorage.getItem('adsWatchedDate');
@@ -92,6 +93,11 @@ const Index = () => {
     { value: "10+0", label: "10 мин", icon: "Timer" },
     { value: "10+5", label: "10+5", icon: "Timer" },
     { value: "15+10", label: "15+10", icon: "Timer" },
+  ];
+
+  const gameModes = [
+    { value: 'normal', label: 'Обычный', description: '3 кубика за ход', icon: 'Dice1' },
+    { value: 'x2', label: 'x2', description: '6 кубиков за ход', icon: 'Dices' },
   ];
 
   const handleClaimDaily = () => {
@@ -369,6 +375,34 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Выберите ставку и временной контроль</p>
             </div>
 
+            <Card className="mb-8 animate-scale-in">
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Icon name="Gamepad2" size={24} className="text-primary" />
+                  Режим игры
+                </CardTitle>
+                <CardDescription>Выберите количество кубиков за ход</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  {gameModes.map((mode) => (
+                    <Button
+                      key={mode.value}
+                      variant={gameMode === mode.value ? "default" : "outline"}
+                      onClick={() => setGameMode(mode.value as 'normal' | 'x2')}
+                      className={`h-auto py-6 flex flex-col gap-2 ${gameMode === mode.value ? "bg-primary" : ""}`}
+                    >
+                      <Icon name={mode.icon as any} size={28} />
+                      <div className="flex flex-col gap-1">
+                        <span className="font-bold text-lg">{mode.label}</span>
+                        <span className="text-xs opacity-70">{mode.description}</span>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid md:grid-cols-2 gap-8">
               <Card className="animate-scale-in">
                 <CardHeader>
@@ -478,7 +512,7 @@ const Index = () => {
                   onClick={() => {
                     setIsSearchingMatch(true);
                     setTimeout(() => {
-                      navigate(`/game?bet=${selectedBet}&time=${selectedTime}`);
+                      navigate(`/game?bet=${selectedBet}&time=${selectedTime}&mode=${gameMode}`);
                     }, 2000);
                   }}
                 >

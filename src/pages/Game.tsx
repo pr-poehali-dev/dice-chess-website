@@ -100,12 +100,15 @@ export default function Game() {
   const bet = parseInt(searchParams.get('bet') || '0');
   const timeControl = searchParams.get('time') || '5+3';
   const difficulty = (searchParams.get('difficulty') || 'medium') as Difficulty;
+  const gameMode = (searchParams.get('mode') || 'normal') as 'normal' | 'x2';
+  const diceCount = gameMode === 'x2' ? 6 : 3;
   
   const [board, setBoard] = useState<(Piece | null)[][]>(createInitialBoard());
   const [selectedSquare, setSelectedSquare] = useState<Position | null>(null);
   const [currentTurn, setCurrentTurn] = useState<Color>('white');
   const [diceRolls, setDiceRolls] = useState<PieceType[]>([]);
   const [movesLeft, setMovesLeft] = useState(3);
+  const [mustMoveCount, setMustMoveCount] = useState(0);
   const [usedDiceIndices, setUsedDiceIndices] = useState<number[]>([]);
   const [isRolling, setIsRolling] = useState(false);
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
@@ -157,20 +160,31 @@ export default function Game() {
   }, [currentTurn, diceRolls, movesLeft, gameStatus, usedDiceIndices]);
 
   useEffect(() => {
+    if (diceRolls.length === 0 && gameStatus === 'playing') {
+      const availableDice = diceRolls.length > 0 ? diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx)) : [];
+      const maxMoves = getAllValidMoves(currentTurn, availableDice).length;
+      setMustMoveCount(Math.min(maxMoves, diceCount));
+    }
+  }, [diceRolls, currentTurn]);
+
+  useEffect(() => {
     if (gameStatus !== 'playing' || isRolling || diceRolls.length === 0) return;
     
     const availableDice = diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx));
     const possibleMoves = getAllValidMoves(currentTurn, availableDice);
     
     if (possibleMoves.length === 0 && availableDice.length > 0) {
+      if (usedDiceIndices.length < mustMoveCount && mustMoveCount > 0) {
+        return;
+      }
       setTimeout(() => {
         setCurrentTurn(currentTurn === 'white' ? 'black' : 'white');
         setDiceRolls([]);
         setUsedDiceIndices([]);
-        setMovesLeft(3);
+        setMovesLeft(diceCount);
       }, 500);
     }
-  }, [usedDiceIndices, diceRolls, currentTurn, gameStatus, isRolling, board]);
+  }, [usedDiceIndices, diceRolls, currentTurn, gameStatus, isRolling, board, mustMoveCount]);
 
   const rollDice = () => {
     setIsRolling(true);
@@ -183,11 +197,11 @@ export default function Game() {
     setTimeout(() => {
       clearInterval(rollInterval);
       const rolls: PieceType[] = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < diceCount; i++) {
         rolls.push(DICE_PIECE_MAP[Math.floor(Math.random() * 6)]);
       }
       setDiceRolls(rolls);
-      setMovesLeft(3);
+      setMovesLeft(diceCount);
       setIsRolling(false);
     }, 600);
   };
@@ -603,6 +617,7 @@ export default function Game() {
                           className={`
                             relative flex items-center justify-center cursor-pointer transition-all aspect-square
                             ${isLight ? 'bg-[#f0d9b5]' : 'bg-[#b58863]'}
+                            font-chess
                             ${isSelected ? 'after:absolute after:inset-0 after:bg-yellow-400/30' : ''}
                             ${isValidMoveSquare && !canCapture ? 'after:absolute after:inset-0 after:bg-green-500/20 after:border-2 after:border-green-500/40' : ''}
                             ${canCapture ? 'after:absolute after:inset-0 after:bg-red-500/30 after:border-2 after:border-red-600/50' : ''}
@@ -611,11 +626,13 @@ export default function Game() {
                           style={{ fontSize: 'clamp(32px, 6vw, 60px)' }}
                         >
                           {piece && (
-                            <span className="relative z-10 select-none" style={{
-                              filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))'
+                            <div className="relative z-10 select-none" style={{
+                              textShadow: piece.color === 'white' 
+                                ? '0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.3)'
+                                : '0 1px 0 #000, 0 2px 3px rgba(0,0,0,0.5)'
                             }}>
                               {PIECE_SYMBOLS[piece.color][piece.type]}
-                            </span>
+                            </div>
                           )}
                         </div>
                       );

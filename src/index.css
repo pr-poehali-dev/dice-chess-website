@@ -111,3 +111,8 @@
     font-family: "Montserrat", sans-serif;
   }
 }
+
+.font-chess {
+  font-family: "Noto Sans", "Segoe UI Emoji", sans-serif;
+  font-size: clamp(42px, 7vw, 72px) !important;
+}
