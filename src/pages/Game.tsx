@@ -106,6 +106,7 @@ export default function Game() {
   const [currentTurn, setCurrentTurn] = useState<Color>('white');
   const [diceRolls, setDiceRolls] = useState<PieceType[]>([]);
   const [movesLeft, setMovesLeft] = useState(3);
+  const [usedDiceIndices, setUsedDiceIndices] = useState<number[]>([]);
   const [isRolling, setIsRolling] = useState(false);
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
   const [capturedPieces, setCapturedPieces] = useState<{ white: Piece[], black: Piece[] }>({ white: [], black: [] });
@@ -144,6 +145,7 @@ export default function Game() {
 
   useEffect(() => {
     if (diceRolls.length === 0 && gameStatus === 'playing') {
+      setUsedDiceIndices([]);
       rollDice();
     }
   }, [currentTurn, gameStatus]);
@@ -276,7 +278,7 @@ export default function Game() {
     return moves;
   };
 
-  const makeMove = (from: Position, to: Position) => {
+  const makeMove = (from: Position, to: Position, diceIndex?: number) => {
     const piece = board[from.row][from.col];
     if (!piece) return;
 
@@ -309,14 +311,23 @@ export default function Game() {
     const move = `${PIECE_SYMBOLS[piece.color][piece.type]} ${String.fromCharCode(97 + from.col)}${8 - from.row} → ${String.fromCharCode(97 + to.col)}${8 - to.row}`;
     setMoveHistory(prev => [...prev, move]);
 
-    const newMovesLeft = movesLeft - 1;
-    setMovesLeft(newMovesLeft);
+    if (diceIndex !== undefined) {
+      setUsedDiceIndices(prev => [...prev, diceIndex]);
+    }
+
+    const newUsedIndices = diceIndex !== undefined ? [...usedDiceIndices, diceIndex] : usedDiceIndices;
+    const remainingDice = diceRolls.filter((_, idx) => !newUsedIndices.includes(idx));
+
     setSelectedSquare(null);
     setValidMoves([]);
 
-    if (newMovesLeft === 0) {
+    if (remainingDice.length === 0) {
       setCurrentTurn(currentTurn === 'white' ? 'black' : 'white');
       setDiceRolls([]);
+      setUsedDiceIndices([]);
+      setMovesLeft(3);
+    } else {
+      setMovesLeft(remainingDice.length);
     }
   };
 
@@ -363,11 +374,13 @@ export default function Game() {
   };
 
   const makeBotMove = () => {
-    const allMoves = getAllValidMoves('black', diceRolls);
+    const availableDice = diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx));
+    const allMoves = getAllValidMoves('black', availableDice);
     
     if (allMoves.length === 0) {
       setCurrentTurn('white');
       setDiceRolls([]);
+      setUsedDiceIndices([]);
       setMovesLeft(3);
       return;
     }
@@ -390,7 +403,10 @@ export default function Game() {
       selectedMove = scoredMoves[0];
     }
 
-    makeMove(selectedMove.from, selectedMove.to);
+    const diceIndex = diceRolls.findIndex((pieceType, idx) => 
+      pieceType === selectedMove.pieceType && !usedDiceIndices.includes(idx)
+    );
+    makeMove(selectedMove.from, selectedMove.to, diceIndex);
   };
 
   const getPieceValue = (type: PieceType): number => {
@@ -402,20 +418,25 @@ export default function Game() {
     if (currentTurn !== 'white' || gameStatus !== 'playing') return;
 
     const piece = board[row][col];
+    const availableDice = diceRolls.filter((_, idx) => !usedDiceIndices.includes(idx));
 
     if (selectedSquare) {
       const isValidTarget = validMoves.some(move => move.row === row && move.col === col);
       
       if (isValidTarget) {
-        makeMove(selectedSquare, { row, col });
-      } else if (piece && piece.color === 'white' && diceRolls.includes(piece.type)) {
+        const selectedPiece = board[selectedSquare.row][selectedSquare.col];
+        const diceIndex = diceRolls.findIndex((pieceType, idx) => 
+          pieceType === selectedPiece?.type && !usedDiceIndices.includes(idx)
+        );
+        makeMove(selectedSquare, { row, col }, diceIndex);
+      } else if (piece && piece.color === 'white' && availableDice.includes(piece.type)) {
         setSelectedSquare({ row, col });
         setValidMoves(calculateValidMovesForSquare({ row, col }));
       } else {
         setSelectedSquare(null);
         setValidMoves([]);
       }
-    } else if (piece && piece.color === 'white' && diceRolls.includes(piece.type)) {
+    } else if (piece && piece.color === 'white' && availableDice.includes(piece.type)) {
       setSelectedSquare({ row, col });
       setValidMoves(calculateValidMovesForSquare({ row, col }));
     }
@@ -479,44 +500,8 @@ export default function Game() {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-[300px_auto_300px] gap-6 items-start max-w-[1400px] mx-auto">
+        <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-6 items-start max-w-[1400px] mx-auto">
           <div className="space-y-4">
-            <div className="space-y-4">
-              {isRolling ? (
-                <div className="flex justify-center gap-3 py-8">
-                  <div className="text-6xl animate-bounce">🎲</div>
-                  <div className="text-6xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎲</div>
-                  <div className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎲</div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {diceRolls.map((pieceType, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-lg shadow-lg p-4 flex items-center gap-3 border-2 border-gray-200"
-                    >
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center text-white text-3xl font-bold shadow-md">
-                        {index + 1}
-                      </div>
-                      <div className="text-5xl">
-                        {PIECE_SYMBOLS.white[pieceType]}
-                      </div>
-                      <div className="text-lg font-bold text-gray-700 capitalize">
-                        {pieceType === 'pawn' ? 'Пешка' : pieceType === 'knight' ? 'Конь' : pieceType === 'bishop' ? 'Слон' : pieceType === 'rook' ? 'Ладья' : pieceType === 'queen' ? 'Ферзь' : 'Король'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {currentTurn === 'white' && movesLeft > 0 && diceRolls.length > 0 && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center">
-                  <p className="text-sm font-semibold text-blue-700">
-                    Ходов осталось: {movesLeft}
-                  </p>
-                </div>
-              )}
-            </div>
-
             <Card className="p-4 bg-slate-800 border-slate-700">
               <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
                 <Icon name="Trophy" size={20} />
@@ -627,6 +612,58 @@ export default function Game() {
                 </div>
               </div>
             </div>
+
+            {currentTurn === 'white' && !isRolling && (
+              <div className="w-full max-w-[600px] mt-4 flex justify-center gap-2">
+                {diceRolls.map((pieceType, index) => (
+                  <div
+                    key={index}
+                    className={`bg-white rounded-lg shadow-md p-2 flex flex-col items-center gap-1 border-2 transition-all ${
+                      usedDiceIndices.includes(index) 
+                        ? 'border-gray-300 opacity-40' 
+                        : 'border-blue-400'
+                    }`}
+                    style={{ minWidth: '80px' }}
+                  >
+                    <div className="text-3xl">
+                      {PIECE_SYMBOLS.white[pieceType]}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-600 uppercase text-center">
+                      {pieceType === 'pawn' ? 'Пешка' : pieceType === 'knight' ? 'Конь' : pieceType === 'bishop' ? 'Слон' : pieceType === 'rook' ? 'Ладья' : pieceType === 'queen' ? 'Ферзь' : 'Король'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {currentTurn === 'black' && !isRolling && (
+              <div className="w-full max-w-[600px] mt-4 flex justify-center gap-2">
+                {diceRolls.map((pieceType, index) => (
+                  <div
+                    key={index}
+                    className={`bg-white rounded-lg shadow-md p-2 flex flex-col items-center gap-1 border-2 transition-all ${
+                      usedDiceIndices.includes(index) 
+                        ? 'border-gray-300 opacity-40' 
+                        : 'border-gray-600'
+                    }`}
+                    style={{ minWidth: '80px' }}
+                  >
+                    <div className="text-3xl">
+                      {PIECE_SYMBOLS.black[pieceType]}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-600 uppercase text-center">
+                      {pieceType === 'pawn' ? 'Пешка' : pieceType === 'knight' ? 'Конь' : pieceType === 'bishop' ? 'Слон' : pieceType === 'rook' ? 'Ладья' : pieceType === 'queen' ? 'Ферзь' : 'Король'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {isRolling && (
+              <div className="w-full max-w-[600px] mt-4 flex justify-center gap-3">
+                <div className="text-5xl animate-bounce">🎲</div>
+                <div className="text-5xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎲</div>
+                <div className="text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎲</div>
+              </div>
+            )}
 
             <div className="w-full max-w-[600px] mt-2 px-4 py-2 bg-[#262421] rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
